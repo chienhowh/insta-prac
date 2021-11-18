@@ -3,19 +3,21 @@ import Image from 'next/image';
 import { SearchIcon, MenuIcon, PaperAirplaneIcon, PlusCircleIcon, UserGroupIcon, HeartIcon } from '@heroicons/react/outline';
 import { HomeIcon } from '@heroicons/react/solid';
 import { signIn, signOut, useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
 
 function Header() {
     const { data: session } = useSession();
+    const router = useRouter();
     console.log(session);
     return (
         <div className="shadow-sm border-b bg-white sticky top-0 z-50">
             <div className="flex justify-between max-w-6xl mx-5 lg:mx-auto">
                 {/* homepage */}
                 <div className="relative hidden lg:inline-grid w-24 cursor-pointer">
-                    <Image src="https://links.papareact.com/ocw" layout="fill" objectFit="contain" />
+                    <Image src="https://links.papareact.com/ocw" layout="fill" objectFit="contain" onClick={() => router.push('/')} />
                 </div>
                 <div className="relative lg:hidden w-10 cursor-pointer">
-                    <Image src="https://links.papareact.com/jjm" layout="fill" objectFit="contain" />
+                    <Image src="https://links.papareact.com/jjm" layout="fill" objectFit="contain" onClick={() => router.push('/')} />
                 </div>
                 {/* search */}
                 <div className="max-w-xs">
@@ -30,7 +32,7 @@ function Header() {
                 </div>
                 {/* icons */}
                 <div className="flex items-center justify-end space-x-4">
-                    <HomeIcon className="nav-btn"></HomeIcon>
+                    <HomeIcon className="nav-btn" onClick={() => router.push('/')}></HomeIcon>
                     <MenuIcon className="w-10 h-10 md:hidden cursor-pointer"></MenuIcon>
                     {session ? (<>
                         <div className="nav-btn relative">
