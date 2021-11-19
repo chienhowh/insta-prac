@@ -4,10 +4,13 @@ import { SearchIcon, MenuIcon, PaperAirplaneIcon, PlusCircleIcon, UserGroupIcon,
 import { HomeIcon } from '@heroicons/react/solid';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
+import { useRecoilState } from 'recoil';
+import { modalState } from '../atoms/modol-atom';
 
 function Header() {
     const { data: session } = useSession();
     const router = useRouter();
+    const [open, setOpen] = useRecoilState(modalState);
     console.log(session);
     return (
         <div className="shadow-sm border-b bg-white sticky top-0 z-50">
@@ -39,7 +42,7 @@ function Header() {
                             <PaperAirplaneIcon className="nav-btn rotate-45"></PaperAirplaneIcon>
                             <div className="absolute bg-red-500 rounded-full w-5 h-5 flex justify-center items-center text-xs -top-1 -right-2 text-white">3</div>
                         </div>
-                        <PlusCircleIcon className="nav-btn"></PlusCircleIcon>
+                        <PlusCircleIcon className="nav-btn" onClick={() => { setOpen(true) }}></PlusCircleIcon>
                         <UserGroupIcon className="nav-btn"></UserGroupIcon>
                         <HeartIcon className="nav-btn"></HeartIcon>
                         <img src={session.user.image} onClick={() => signOut()} className="rounded-full h-10 cursor-pointer object-contain"></img>

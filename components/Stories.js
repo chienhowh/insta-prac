@@ -13,7 +13,7 @@ function Stories() {
     }, [])
     return (
         <div className="flex p-6 space-x-2 bg-white mt-8 border-gray-200 overflow-x-scroll border rounded-sm scrollbar-thin scrollbar-thumb-black">
-            {session && (<Story username={session.user.username} image={session.user.image}></Story>)}
+            {session && (<Story username={session.user.username} image={session.user.image} present={true}></Story>)}
             {users.map(u => <Story key={u.id} username={u.username} image={u.avatar}></Story>)}
         </div>
     )
