@@ -1,14 +1,22 @@
 import { logEvent } from '@firebase/analytics'
+import { addDoc, collection, doc, serverTimestamp, updateDoc } from '@firebase/firestore'
+import { getDownloadURL, ref, uploadBytes, uploadString } from '@firebase/storage'
 import { Dialog, Transition } from '@headlessui/react'
 import { CameraIcon } from '@heroicons/react/outline'
+import { useSession } from 'next-auth/react'
 import React, { Fragment, useRef, useState } from 'react'
 import { useRecoilState } from 'recoil'
 import { modalState } from '../atoms/modol-atom'
+import { db, store } from '../firebase'
 
 function Modal() {
     const [open, setOpen] = useRecoilState(modalState);
     const filepickerRef = useRef(null);
+    const captionRef = useRef(null);
+    const { data: session } = useSession();
     const [file, setFile] = useState(null);
+    const [loading, setLoading] = useState(false);
+
     const addImgToPost = (e) => {
         console.log(e);
         const reader = new FileReader()
@@ -19,7 +27,36 @@ function Modal() {
             console.log(readerEvent.target.result);
             setFile(readerEvent.target.result);
         }
+    }
 
+    const uploadPost = async () => {
+        if (loading) { return; }
+        setLoading(true);
+        // 1. add post to firestore and get id
+        const docRef = await addDoc(collection(db, 'posts'), {
+            username: session.user.username,
+            caption: captionRef.current.value,
+            avatar: session.user.image,
+            uploadtime: serverTimestamp()
+        })
+        console.log(docRef.id);
+        // 2. upload img with post's id
+        // (ref is a pointer to file)
+        const imagesRef = ref(store, `posts/${docRef.id}/image`);
+        await uploadString(imagesRef, file, 'data_url').then(async (snapshot) => {
+            console.log('Upload success!')
+            console.log(snapshot);
+            // 3. update post with img download url
+            await getDownloadURL(snapshot.ref).then((url) => {
+                updateDoc(doc(db, 'posts', docRef.id), {
+                    image: url
+                })
+            })
+        })
+        // upload success
+        setLoading(false);
+        setFile(null);
+        setOpen(false);
     }
 
     return (<Transition.Root show={open} >
@@ -65,11 +102,12 @@ function Modal() {
                                     <input ref={filepickerRef} onChange={addImgToPost} type="file" hidden></input>
                                 </div>
                                 <div>
-                                    <input type="text" className="border-none focus:ring-0 w-full text-center"></input>
+                                    <input ref={captionRef} type="text" className="border-none focus:ring-0 w-full text-center" placeholder="Type something..."></input>
                                 </div>
                                 <div className="mt-5 sm:mt-6">
-                                    <button type="button" className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm disabled:bg-gray-300 disabled:cursor-not-allowed hover:disabled:bg-gray-300">
-                                        Upload Post
+                                    <button type="button" className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm disabled:bg-gray-300 disabled:cursor-not-allowed hover:disabled:bg-gray-300" onClick={uploadPost}
+                                        disabled={loading}>
+                                        {loading ? 'Uploading...' : 'Upload Post'}
                                     </button>
 
                                 </div>

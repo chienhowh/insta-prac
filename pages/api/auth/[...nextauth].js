@@ -17,6 +17,7 @@ export default NextAuth({
     async session({session,user,token}) {
       // @ts-ignore
       session.user.username = session.user.name.split(' ').join('').toLowerCase();
+      session.user.uid = token.sub
       return session
     }
   }
